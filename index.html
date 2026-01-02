@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Domination Zone</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 16px;
+    background: #111;
+    color: #eee;
+  }
+  h1, h2 {
+    margin-top: 0;
+  }
+  input, button {
+    width: 100%;
+    padding: 10px;
+    margin: 6px 0;
+    font-size: 16px;
+  }
+  button {
+    cursor: pointer;
+  }
+  .hidden {
+    display: none;
+  }
+  .box {
+    border: 1px solid #444;
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+  .capture-buttons button {
+    margin-bottom: 6px;
+  }
+  .danger {
+    background: #a33;
+    color: #fff;
+  }
+  .good {
+    background: #3a3;
+    color: #000;
+  }
+  .progress {
+    height: 20px;
+    background: #333;
+    margin-top: 6px;
+  }
+  .progress-bar {
+    height: 100%;
+    width: 0%;
+    background: #3af;
+  }
+</style>
+</head>
+
+<body>
+
+<h1>Domination Zone</h1>
+
+<!-- CONFIG SCREEN -->
+<div id="configScreen" class="box">
+  <h2>Game Configuration</h2>
+
+  <label>Zone Name</label>
+  <input id="zoneName" placeholder="e.g. Tunnel">
+
+  <label>Zone Capture Duration (seconds)</label>
+  <input id="captureDuration" type="number" min="5" max="30" value="10">
+
+  <label>Zone Score Multiplier</label>
+  <input id="multiplier" type="number" step="0.5" min="0.5" max="2" value="1">
+
+  <label>Game Duration (seconds)</label>
+  <input id="gameDuration" type="number" value="600">
+
+  <label>Seconds per 1 Point</label>
+  <input id="secondsPerPoint" type="number" value="5">
+
+  <label>Player Names (one per line)</label>
+  <textarea id="playersInput" rows="4" style="width:100%;"></textarea>
+
+  <button onclick="startGame()">Start Game</button>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="gameScreen" class="hidden">
+
+  <div class="box">
+    <h2 id="zoneTitle"></h2>
+    <div>Owner: <span id="ownerText">Neutral</span></div>
+    <div>Status: <span id="statusText">Idle</span></div>
+    <div>Multiplier: <span id="multText"></span>x</div>
+    <div>Time Left: <span id="timeLeft"></span>s</div>
+
+    <div class="progress">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+  </div>
+
+  <div class="box">
+    <h2>Capture</h2>
+    <div class="capture-buttons" id="captureButtons"></div>
+    <button class="danger" onclick="cancelCapture()">Cancel Capture</button>
+    <button class="danger" onclick="stopScoring()">Stop Scoring (Got Hit)</button>
+  </div>
+
+  <div class="box">
+    <h2>Scoreboard</h2>
+    <div id="scoreboard"></div>
+  </div>
+
+</div>
+
+<!-- END SCREEN -->
+<div id="endScreen" class="hidden box">
+  <h2>Game Over</h2>
+  <div id="finalScores"></div>
+  <button onclick="resetGame()">Reset Game</button>
+</div>
+
+<script>
+let config = {};
+let players = [];
+let scores = {};
+let owner = null;
+
+let gameTimer = null;
+let scoreTimer = null;
+let captureTimer = null;
+
+let captureProgress = 0;
+let capturingPlayer = null;
+let gameTimeLeft = 0;
+
+// ---------- START GAME ----------
+function startGame() {
+  players = document.getElementById("playersInput").value
+    .split("\n")
+    .map(p => p.trim())
+    .filter(p => p);
+
+  if (players.length === 0) {
+    alert("Enter at least one player.");
+    return;
+  }
+
+  config = {
+    zoneName: document.getElementById("zoneName").value || "Zone",
+    captureDuration: Number(document.getElementById("captureDuration").value),
+    multiplier: Number(document.getElementById("multiplier").value),
+    gameDuration: Number(document.getElementById("gameDuration").value),
+    secondsPerPoint: Number(document.getElementById("secondsPerPoint").value)
+  };
+
+  players.forEach(p => scores[p] = 0);
+
+  document.getElementById("configScreen").classList.add("hidden");
+  document.getElementById("gameScreen").classList.remove("hidden");
+
+  setupUI();
+  startGameTimer();
+}
+
+// ---------- UI SETUP ----------
+function setupUI() {
+  document.getElementById("zoneTitle").textContent = config.zoneName;
+  document.getElementById("multText").textContent = config.multiplier;
+
+  const buttonsDiv = document.getElementById("captureButtons");
+  buttonsDiv.innerHTML = "";
+  players.forEach(player => {
+    const btn = document.createElement("button");
+    btn.textContent = player;
+    btn.onclick = () => startCapture(player);
+    buttonsDiv.appendChild(btn);
+  });
+
+  updateScoreboard();
+}
+
+// ---------- GAME TIMER ----------
+function startGameTimer() {
+  gameTimeLeft = config.gameDuration;
+  updateTime();
+
+  gameTimer = setInterval(() => {
+    gameTimeLeft--;
+    updateTime();
+
+    if (gameTimeLeft <= 0) {
+      endGame();
+    }
+  }, 1000);
+}
+
+function updateTime() {
+  document.getElementById("timeLeft").textContent = gameTimeLeft;
+}
+
+// ---------- CAPTURE ----------
+function startCapture(player) {
+  if (captureTimer || owner === player) return;
+
+  capturingPlayer = player;
+  captureProgress = 0;
+  document.getElementById("statusText").textContent = "Capturing: " + player;
+
+  captureTimer = setInterval(() => {
+    captureProgress++;
+    updateProgress();
+
+    if (captureProgress >= config.captureDuration) {
+      finishCapture(player);
+    }
+  }, 1000);
+}
+
+function cancelCapture() {
+  if (!captureTimer) return;
+  clearInterval(captureTimer);
+  captureTimer = null;
+  capturingPlayer = null;
+  captureProgress = 0;
+  updateProgress();
+  document.getElementById("statusText").textContent = "Capture Cancelled";
+}
+
+function finishCapture(player) {
+  clearInterval(captureTimer);
+  captureTimer = null;
+  owner = player;
+  capturingPlayer = null;
+  captureProgress = 0;
+  updateProgress();
+
+  document.getElementById("ownerText").textContent = owner;
+  document.getElementById("statusText").textContent = "Scoring";
+
+  startScoring();
+}
+
+// ---------- SCORING ----------
+function startScoring() {
+  stopScoring();
+
+  scoreTimer = setInterval(() => {
+    if (!owner) return;
+    scores[owner] += config.multiplier;
+    updateScoreboard();
+  }, config.secondsPerPoint * 1000);
+}
+
+function stopScoring() {
+  if (scoreTimer) {
+    clearInterval(scoreTimer);
+    scoreTimer = null;
+  }
+  owner = null;
+  document.getElementById("ownerText").textContent = "Neutral";
+  document.getElementById("statusText").textContent = "Idle";
+}
+
+// ---------- UI UPDATES ----------
+function updateProgress() {
+  const percent = (captureProgress / config.captureDuration) * 100;
+  document.getElementById("progressBar").style.width = percent + "%";
+}
+
+function updateScoreboard() {
+  const sb = document.getElementById("scoreboard");
+  sb.innerHTML = "";
+  for (const p of players) {
+    sb.innerHTML += `<div>${p}: ${scores[p].toFixed(1)}</div>`;
+  }
+}
+
+// ---------- END GAME ----------
+function endGame() {
+  clearInterval(gameTimer);
+  clearInterval(scoreTimer);
+  clearInterval(captureTimer);
+
+  document.getElementById("gameScreen").classList.add("hidden");
+  document.getElementById("endScreen").classList.remove("hidden");
+
+  const fs = document.getElementById("finalScores");
+  fs.innerHTML = "";
+  for (const p of players) {
+    fs.innerHTML += `<div>${p}: ${scores[p].toFixed(1)}</div>`;
+  }
+}
+
+// ---------- RESET ----------
+function resetGame() {
+  if (!confirm("Reset game and go back to configuration?")) return;
+  location.reload();
+}
+</script>
+
+</body>
+</html>

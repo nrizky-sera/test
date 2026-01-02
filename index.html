@@ -1,305 +1,1242 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Domination Zone</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Domination Zone Control</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0a0e13;
+      --bg-card: #141a23;
+      --bg-card-hover: #1a222d;
+      --border-color: #2a3441;
+      --text-primary: #e8edf4;
+      --text-secondary: #7a8a9d;
+      --text-muted: #4a5568;
+      --accent-blue: #3b82f6;
+      --accent-orange: #f59e0b;
+      --accent-red: #ef4444;
+      --accent-green: #22c55e;
+      --accent-purple: #a855f7;
+      --accent-cyan: #06b6d4;
+      --neutral-zone: #4a5568;
+      --player-1: #ef4444;
+      --player-2: #3b82f6;
+      --player-3: #22c55e;
+      --player-4: #f59e0b;
+      --player-5: #a855f7;
+      --player-6: #06b6d4;
+    }
 
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 16px;
-    background: #111;
-    color: #eee;
-  }
-  h1, h2 {
-    margin-top: 0;
-  }
-  input, button {
-    width: 100%;
-    padding: 10px;
-    margin: 6px 0;
-    font-size: 16px;
-  }
-  button {
-    cursor: pointer;
-  }
-  .hidden {
-    display: none;
-  }
-  .box {
-    border: 1px solid #444;
-    padding: 12px;
-    margin-bottom: 12px;
-  }
-  .capture-buttons button {
-    margin-bottom: 6px;
-  }
-  .danger {
-    background: #a33;
-    color: #fff;
-  }
-  .good {
-    background: #3a3;
-    color: #000;
-  }
-  .progress {
-    height: 20px;
-    background: #333;
-    margin-top: 6px;
-  }
-  .progress-bar {
-    height: 100%;
-    width: 0%;
-    background: #3af;
-  }
-</style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Rajdhani', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 16px;
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--accent-orange);
+      text-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+    }
+
+    .header .subtitle {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      letter-spacing: 0.1em;
+    }
+
+    /* Screens */
+    .screen {
+      display: none;
+    }
+
+    .screen.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Form Elements */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 14px 16px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-primary);
+      transition: all 0.2s ease;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+
+    input::placeholder {
+      color: var(--text-muted);
+    }
+
+    /* Section Headers */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 28px 0 16px;
+    }
+
+    .section-header::before,
+    .section-header::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+    }
+
+    .section-header span {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    /* Player List */
+    .player-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .player-input-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .player-input-row input {
+      flex: 1;
+    }
+
+    .player-color {
+      width: 40px;
+      height: 48px;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+
+    .btn-remove-player {
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--accent-red);
+      font-size: 1.5rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .btn-remove-player:hover {
+      background: var(--accent-red);
+      color: white;
+    }
+
+    .btn-add-player {
+      margin-top: 8px;
+      padding: 12px;
+      background: transparent;
+      border: 1px dashed var(--border-color);
+      border-radius: 8px;
+      color: var(--text-secondary);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-add-player:hover {
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
+
+    /* Buttons */
+    .btn {
+      width: 100%;
+      padding: 16px 24px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-orange), #d97706);
+      color: var(--bg-dark);
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-card-hover);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, var(--accent-red), #dc2626);
+      color: white;
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, var(--accent-green), #16a34a);
+      color: var(--bg-dark);
+    }
+
+    /* Game Screen */
+    .game-timer {
+      text-align: center;
+      padding: 20px;
+      background: var(--bg-card);
+      border-radius: 12px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border-color);
+    }
+
+    .game-timer-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .game-timer-value {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      text-shadow: 0 0 30px rgba(232, 237, 244, 0.2);
+    }
+
+    .game-timer-value.warning {
+      color: var(--accent-orange);
+      animation: pulse 1s ease infinite;
+    }
+
+    .game-timer-value.critical {
+      color: var(--accent-red);
+      animation: pulse 0.5s ease infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    /* Zone Status */
+    .zone-status {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border-color);
+      transition: border-color 0.3s ease;
+    }
+
+    .zone-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 4px;
+    }
+
+    .zone-info {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .zone-owner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+    }
+
+    .owner-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--neutral-zone);
+      box-shadow: 0 0 10px currentColor;
+    }
+
+    .owner-text {
+      flex: 1;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+
+    .zone-score {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1.25rem;
+      color: var(--accent-green);
+    }
+
+    /* Capture Progress */
+    .capture-progress {
+      margin-top: 16px;
+      display: none;
+    }
+
+    .capture-progress.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .capture-progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .capture-progress-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .capture-progress-time {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.9rem;
+    }
+
+    .capture-progress-bar {
+      height: 8px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .capture-progress-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 4px;
+      transition: width 0.1s linear;
+    }
+
+    /* Player Buttons */
+    .player-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .player-btn {
+      padding: 18px 20px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      color: white;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    .player-btn:active {
+      transform: scale(0.98);
+    }
+
+    .player-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .action-btn {
+      padding: 14px 16px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .action-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .btn-cancel {
+      background: var(--accent-red);
+      color: white;
+    }
+
+    .btn-stop-scoring {
+      background: var(--accent-orange);
+      color: var(--bg-dark);
+    }
+
+    /* Pre-Game */
+    .pre-game-message {
+      text-align: center;
+      padding: 40px 20px;
+      background: var(--bg-card);
+      border-radius: 12px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border-color);
+    }
+
+    .pre-game-message h2 {
+      font-size: 1.2rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent-blue);
+      margin-bottom: 12px;
+    }
+
+    .pre-game-message p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* Game Over */
+    .game-over-banner {
+      text-align: center;
+      padding: 30px;
+      background: linear-gradient(135deg, var(--accent-orange), #d97706);
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .game-over-banner h2 {
+      font-size: 1.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--bg-dark);
+      margin-bottom: 8px;
+    }
+
+    .game-over-banner p {
+      color: rgba(10, 14, 19, 0.7);
+      font-size: 0.9rem;
+    }
+
+    .final-score-card {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border-color);
+      text-align: center;
+    }
+
+    .final-score-zone {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .final-scores-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .final-score-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+    }
+
+    .final-score-color {
+      width: 8px;
+      height: 40px;
+      border-radius: 4px;
+    }
+
+    .final-score-name {
+      flex: 1;
+      text-align: left;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .final-score-value {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1.25rem;
+      color: var(--accent-green);
+    }
+
+    /* Utilities */
+    .mt-20 { margin-top: 20px; }
+    .mb-20 { margin-bottom: 20px; }
+
+    /* Confirmation Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 1000;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 320px;
+      width: 100%;
+      border: 1px solid var(--border-color);
+      animation: modalIn 0.2s ease;
+    }
+
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .modal h3 {
+      font-size: 1.1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 12px;
+      color: var(--accent-orange);
+    }
+
+    .modal p {
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .modal-buttons .btn {
+      flex: 1;
+      padding: 12px;
+      font-size: 0.9rem;
+    }
+  </style>
 </head>
-
 <body>
+  <div class="container">
+    <header class="header">
+      <h1>Domination</h1>
+      <div class="subtitle">Zone Control System</div>
+    </header>
 
-<h1>Domination Zone</h1>
+    <!-- Configuration Screen -->
+    <div id="config-screen" class="screen active">
+      <div class="section-header"><span>Game Settings</span></div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label>Game Duration</label>
+          <select id="game-duration">
+            <option value="180">3 Minutes</option>
+            <option value="300" selected>5 Minutes</option>
+            <option value="420">7 Minutes</option>
+            <option value="600">10 Minutes</option>
+            <option value="900">15 Minutes</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Seconds / Point</label>
+          <select id="seconds-per-point">
+            <option value="1">1 Second</option>
+            <option value="2">2 Seconds</option>
+            <option value="3">3 Seconds</option>
+            <option value="5" selected>5 Seconds</option>
+            <option value="10">10 Seconds</option>
+          </select>
+        </div>
+      </div>
 
-<!-- CONFIG SCREEN -->
-<div id="configScreen" class="box">
-  <h2>Game Configuration</h2>
+      <div class="section-header"><span>Zone Settings</span></div>
+      
+      <div class="form-group">
+        <label>Zone Name</label>
+        <input type="text" id="zone-name" placeholder="e.g. Front Yard, Tunnel...">
+      </div>
 
-  <label>Zone Name</label>
-  <input id="zoneName" placeholder="e.g. Tunnel">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Capture Time</label>
+          <select id="capture-duration">
+            <option value="3">3 Seconds</option>
+            <option value="5" selected>5 Seconds</option>
+            <option value="7">7 Seconds</option>
+            <option value="10">10 Seconds</option>
+            <option value="15">15 Seconds</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Score Multiplier</label>
+          <select id="score-multiplier">
+            <option value="0.5">0.5×</option>
+            <option value="1" selected>1.0×</option>
+            <option value="1.5">1.5×</option>
+            <option value="2">2.0×</option>
+          </select>
+        </div>
+      </div>
 
-  <label>Zone Capture Duration (seconds)</label>
-  <input id="captureDuration" type="number" min="5" max="30" value="10">
+      <div class="section-header"><span>Players</span></div>
+      
+      <div id="player-list" class="player-list">
+        <!-- Player inputs will be added here -->
+      </div>
+      <button class="btn-add-player" onclick="addPlayer()">+ Add Player</button>
 
-  <label>Zone Score Multiplier</label>
-  <input id="multiplier" type="number" step="0.5" min="0.5" max="2" value="1">
+      <button class="btn btn-primary mt-20" onclick="startPreGame()">Continue to Game</button>
+    </div>
 
-  <label>Game Duration (seconds)</label>
-  <input id="gameDuration" type="number" value="600">
+    <!-- Pre-Game Screen -->
+    <div id="pregame-screen" class="screen">
+      <div class="pre-game-message">
+        <h2>Ready to Start</h2>
+        <p>Place this phone in the zone.<br>Agree on a start time with other players.<br>Press START when ready.</p>
+      </div>
 
-  <label>Seconds per 1 Point</label>
-  <input id="secondsPerPoint" type="number" value="5">
+      <div class="zone-status">
+        <div class="zone-name" id="pregame-zone-name">Zone Name</div>
+        <div class="zone-info">
+          <span id="pregame-capture-time">5s</span> capture • 
+          <span id="pregame-multiplier">1.0×</span> points
+        </div>
+      </div>
 
-  <label>Player Names (one per line)</label>
-  <textarea id="playersInput" rows="4" style="width:100%;"></textarea>
+      <button class="btn btn-primary" onclick="startGame()">Start Game</button>
+      <button class="btn btn-secondary mt-20" onclick="backToConfig()">Back to Config</button>
+    </div>
 
-  <button onclick="startGame()">Start Game</button>
-</div>
+    <!-- Game Screen -->
+    <div id="game-screen" class="screen">
+      <div class="game-timer">
+        <div class="game-timer-label">Time Remaining</div>
+        <div class="game-timer-value" id="game-timer">5:00</div>
+      </div>
 
-<!-- GAME SCREEN -->
-<div id="gameScreen" class="hidden">
+      <div class="zone-status" id="zone-status-card">
+        <div class="zone-name" id="game-zone-name">Zone Name</div>
+        <div class="zone-info">
+          <span id="game-capture-time">5s</span> capture • 
+          <span id="game-multiplier">1.0×</span> points
+        </div>
+        <div class="zone-owner">
+          <div class="owner-indicator" id="owner-indicator"></div>
+          <div class="owner-text" id="owner-text">Neutral Zone</div>
+          <div class="zone-score" id="zone-score">0 pts</div>
+        </div>
+        <div class="capture-progress" id="capture-progress">
+          <div class="capture-progress-header">
+            <span class="capture-progress-label" id="capture-label">Capturing...</span>
+            <span class="capture-progress-time" id="capture-time">0.0s</span>
+          </div>
+          <div class="capture-progress-bar">
+            <div class="capture-progress-fill" id="capture-fill"></div>
+          </div>
+        </div>
+      </div>
 
-  <div class="box">
-    <h2 id="zoneTitle"></h2>
-    <div>Owner: <span id="ownerText">Neutral</span></div>
-    <div>Status: <span id="statusText">Idle</span></div>
-    <div>Multiplier: <span id="multText"></span>x</div>
-    <div>Time Left: <span id="timeLeft"></span>s</div>
+      <div class="player-buttons" id="player-buttons">
+        <!-- Player buttons will be added here -->
+      </div>
 
-    <div class="progress">
-      <div class="progress-bar" id="progressBar"></div>
+      <div class="action-buttons">
+        <button class="action-btn btn-cancel" id="btn-cancel" onclick="cancelCapture()" disabled>Cancel Capture</button>
+        <button class="action-btn btn-stop-scoring" id="btn-stop" onclick="stopScoring()" disabled>Stop Scoring</button>
+      </div>
+
+      <button class="btn btn-secondary" onclick="confirmEndGame()">End Game Early</button>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameover-screen" class="screen">
+      <div class="game-over-banner">
+        <h2>Game Over</h2>
+        <p>Combine scores from all zones to find the winner!</p>
+      </div>
+
+      <div class="final-score-card">
+        <div class="final-score-zone" id="final-zone-name">Zone Name</div>
+        <div class="final-scores-list" id="final-scores">
+          <!-- Final scores will be added here -->
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="resetGame()">Play Again</button>
     </div>
   </div>
 
-  <div class="box">
-    <h2>Capture</h2>
-    <div class="capture-buttons" id="captureButtons"></div>
-    <button class="danger" onclick="cancelCapture()">Cancel Capture</button>
-    <button class="danger" onclick="stopScoring()">Stop Scoring (Got Hit)</button>
+  <!-- Confirmation Modal -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <h3 id="modal-title">Confirm</h3>
+      <p id="modal-message">Are you sure?</p>
+      <div class="modal-buttons">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-danger" id="modal-confirm" onclick="confirmModal()">Confirm</button>
+      </div>
+    </div>
   </div>
 
-  <div class="box">
-    <h2>Scoreboard</h2>
-    <div id="scoreboard"></div>
-  </div>
+  <script>
+    // Player colors
+    const PLAYER_COLORS = [
+      '#ef4444', // Red
+      '#3b82f6', // Blue
+      '#22c55e', // Green
+      '#f59e0b', // Orange
+      '#a855f7', // Purple
+      '#06b6d4', // Cyan
+    ];
 
-</div>
+    // Game State
+    let gameState = {
+      // Config
+      gameDuration: 300,
+      secondsPerPoint: 5,
+      zoneName: '',
+      captureDuration: 5,
+      scoreMultiplier: 1,
+      players: [],
+      
+      // Runtime
+      timeRemaining: 0,
+      zoneOwner: null, // null = neutral, or player index
+      scores: {}, // { playerIndex: score }
+      
+      // Capture state
+      isCapturing: false,
+      capturingPlayer: null,
+      captureStartTime: null,
+      captureProgress: 0,
+      
+      // Intervals
+      gameInterval: null,
+      captureInterval: null,
+      scoreInterval: null,
+    };
 
-<!-- END SCREEN -->
-<div id="endScreen" class="hidden box">
-  <h2>Game Over</h2>
-  <div id="finalScores"></div>
-  <button onclick="resetGame()">Reset Game</button>
-</div>
+    // Modal callback
+    let modalCallback = null;
 
-<script>
-let config = {};
-let players = [];
-let scores = {};
-let owner = null;
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      // Add default players
+      addPlayer('Player 1');
+      addPlayer('Player 2');
+      addPlayer('Player 3');
+    });
 
-let gameTimer = null;
-let scoreTimer = null;
-let captureTimer = null;
+    // Add player input
+    function addPlayer(defaultName = '') {
+      const playerList = document.getElementById('player-list');
+      const playerIndex = playerList.children.length;
+      
+      if (playerIndex >= 6) {
+        alert('Maximum 6 players allowed');
+        return;
+      }
 
-let captureProgress = 0;
-let capturingPlayer = null;
-let gameTimeLeft = 0;
-
-// ---------- START GAME ----------
-function startGame() {
-  players = document.getElementById("playersInput").value
-    .split("\n")
-    .map(p => p.trim())
-    .filter(p => p);
-
-  if (players.length === 0) {
-    alert("Enter at least one player.");
-    return;
-  }
-
-  config = {
-    zoneName: document.getElementById("zoneName").value || "Zone",
-    captureDuration: Number(document.getElementById("captureDuration").value),
-    multiplier: Number(document.getElementById("multiplier").value),
-    gameDuration: Number(document.getElementById("gameDuration").value),
-    secondsPerPoint: Number(document.getElementById("secondsPerPoint").value)
-  };
-
-  players.forEach(p => scores[p] = 0);
-
-  document.getElementById("configScreen").classList.add("hidden");
-  document.getElementById("gameScreen").classList.remove("hidden");
-
-  setupUI();
-  startGameTimer();
-}
-
-// ---------- UI SETUP ----------
-function setupUI() {
-  document.getElementById("zoneTitle").textContent = config.zoneName;
-  document.getElementById("multText").textContent = config.multiplier;
-
-  const buttonsDiv = document.getElementById("captureButtons");
-  buttonsDiv.innerHTML = "";
-  players.forEach(player => {
-    const btn = document.createElement("button");
-    btn.textContent = player;
-    btn.onclick = () => startCapture(player);
-    buttonsDiv.appendChild(btn);
-  });
-
-  updateScoreboard();
-}
-
-// ---------- GAME TIMER ----------
-function startGameTimer() {
-  gameTimeLeft = config.gameDuration;
-  updateTime();
-
-  gameTimer = setInterval(() => {
-    gameTimeLeft--;
-    updateTime();
-
-    if (gameTimeLeft <= 0) {
-      endGame();
+      const row = document.createElement('div');
+      row.className = 'player-input-row';
+      row.innerHTML = `
+        <div class="player-color" style="background: ${PLAYER_COLORS[playerIndex]}"></div>
+        <input type="text" placeholder="Player name" value="${defaultName}" class="player-name-input">
+        <button class="btn-remove-player" onclick="removePlayer(this)">×</button>
+      `;
+      playerList.appendChild(row);
+      updatePlayerColors();
     }
-  }, 1000);
-}
 
-function updateTime() {
-  document.getElementById("timeLeft").textContent = gameTimeLeft;
-}
-
-// ---------- CAPTURE ----------
-function startCapture(player) {
-  if (captureTimer || owner === player) return;
-
-  capturingPlayer = player;
-  captureProgress = 0;
-  document.getElementById("statusText").textContent = "Capturing: " + player;
-
-  captureTimer = setInterval(() => {
-    captureProgress++;
-    updateProgress();
-
-    if (captureProgress >= config.captureDuration) {
-      finishCapture(player);
+    // Remove player input
+    function removePlayer(btn) {
+      const row = btn.parentElement;
+      row.remove();
+      updatePlayerColors();
     }
-  }, 1000);
-}
 
-function cancelCapture() {
-  if (!captureTimer) return;
-  clearInterval(captureTimer);
-  captureTimer = null;
-  capturingPlayer = null;
-  captureProgress = 0;
-  updateProgress();
-  document.getElementById("statusText").textContent = "Capture Cancelled";
-}
+    // Update player colors after removal
+    function updatePlayerColors() {
+      const rows = document.querySelectorAll('.player-input-row');
+      rows.forEach((row, index) => {
+        row.querySelector('.player-color').style.background = PLAYER_COLORS[index];
+      });
+    }
 
-function finishCapture(player) {
-  clearInterval(captureTimer);
-  captureTimer = null;
-  owner = player;
-  capturingPlayer = null;
-  captureProgress = 0;
-  updateProgress();
+    // Show screen
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(screenId).classList.add('active');
+    }
 
-  document.getElementById("ownerText").textContent = owner;
-  document.getElementById("statusText").textContent = "Scoring";
+    // Start pre-game
+    function startPreGame() {
+      // Validate and collect config
+      const zoneName = document.getElementById('zone-name').value.trim();
+      if (!zoneName) {
+        alert('Please enter a zone name');
+        return;
+      }
 
-  startScoring();
-}
+      const playerInputs = document.querySelectorAll('.player-name-input');
+      const players = [];
+      playerInputs.forEach(input => {
+        const name = input.value.trim();
+        if (name) players.push(name);
+      });
 
-// ---------- SCORING ----------
-function startScoring() {
-  stopScoring();
+      if (players.length < 2) {
+        alert('Please add at least 2 players');
+        return;
+      }
 
-  scoreTimer = setInterval(() => {
-    if (!owner) return;
-    scores[owner] += config.multiplier;
-    updateScoreboard();
-  }, config.secondsPerPoint * 1000);
-}
+      // Save config
+      gameState.gameDuration = parseInt(document.getElementById('game-duration').value);
+      gameState.secondsPerPoint = parseInt(document.getElementById('seconds-per-point').value);
+      gameState.zoneName = zoneName;
+      gameState.captureDuration = parseInt(document.getElementById('capture-duration').value);
+      gameState.scoreMultiplier = parseFloat(document.getElementById('score-multiplier').value);
+      gameState.players = players;
+      
+      // Initialize scores
+      gameState.scores = {};
+      players.forEach((_, i) => gameState.scores[i] = 0);
 
-function stopScoring() {
-  if (scoreTimer) {
-    clearInterval(scoreTimer);
-    scoreTimer = null;
-  }
-  owner = null;
-  document.getElementById("ownerText").textContent = "Neutral";
-  document.getElementById("statusText").textContent = "Idle";
-}
+      // Update pre-game display
+      document.getElementById('pregame-zone-name').textContent = zoneName;
+      document.getElementById('pregame-capture-time').textContent = gameState.captureDuration + 's';
+      document.getElementById('pregame-multiplier').textContent = gameState.scoreMultiplier + '×';
 
-// ---------- UI UPDATES ----------
-function updateProgress() {
-  const percent = (captureProgress / config.captureDuration) * 100;
-  document.getElementById("progressBar").style.width = percent + "%";
-}
+      showScreen('pregame-screen');
+    }
 
-function updateScoreboard() {
-  const sb = document.getElementById("scoreboard");
-  sb.innerHTML = "";
-  for (const p of players) {
-    sb.innerHTML += `<div>${p}: ${scores[p].toFixed(1)}</div>`;
-  }
-}
+    // Back to config
+    function backToConfig() {
+      showScreen('config-screen');
+    }
 
-// ---------- END GAME ----------
-function endGame() {
-  clearInterval(gameTimer);
-  clearInterval(scoreTimer);
-  clearInterval(captureTimer);
+    // Start game
+    function startGame() {
+      // Initialize game state
+      gameState.timeRemaining = gameState.gameDuration;
+      gameState.zoneOwner = null;
+      gameState.isCapturing = false;
+      gameState.capturingPlayer = null;
+      gameState.captureProgress = 0;
 
-  document.getElementById("gameScreen").classList.add("hidden");
-  document.getElementById("endScreen").classList.remove("hidden");
+      // Reset scores
+      gameState.players.forEach((_, i) => gameState.scores[i] = 0);
 
-  const fs = document.getElementById("finalScores");
-  fs.innerHTML = "";
-  for (const p of players) {
-    fs.innerHTML += `<div>${p}: ${scores[p].toFixed(1)}</div>`;
-  }
-}
+      // Update UI
+      document.getElementById('game-zone-name').textContent = gameState.zoneName;
+      document.getElementById('game-capture-time').textContent = gameState.captureDuration + 's';
+      document.getElementById('game-multiplier').textContent = gameState.scoreMultiplier + '×';
+      
+      updateTimerDisplay();
+      updateZoneDisplay();
+      createPlayerButtons();
 
-// ---------- RESET ----------
-function resetGame() {
-  if (!confirm("Reset game and go back to configuration?")) return;
-  location.reload();
-}
-</script>
+      // Start game timer
+      gameState.gameInterval = setInterval(gameTick, 1000);
 
+      showScreen('game-screen');
+    }
+
+    // Create player buttons
+    function createPlayerButtons() {
+      const container = document.getElementById('player-buttons');
+      container.innerHTML = '';
+      
+      gameState.players.forEach((name, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'player-btn';
+        btn.style.background = `linear-gradient(135deg, ${PLAYER_COLORS[index]}, ${adjustColor(PLAYER_COLORS[index], -30)})`;
+        btn.textContent = `Capture: ${name}`;
+        btn.onclick = () => startCapture(index);
+        btn.id = `player-btn-${index}`;
+        container.appendChild(btn);
+      });
+    }
+
+    // Adjust color brightness
+    function adjustColor(color, amount) {
+      const hex = color.replace('#', '');
+      const r = Math.max(0, Math.min(255, parseInt(hex.slice(0, 2), 16) + amount));
+      const g = Math.max(0, Math.min(255, parseInt(hex.slice(2, 4), 16) + amount));
+      const b = Math.max(0, Math.min(255, parseInt(hex.slice(4, 6), 16) + amount));
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    // Game tick (every second)
+    function gameTick() {
+      gameState.timeRemaining--;
+      updateTimerDisplay();
+
+      if (gameState.timeRemaining <= 0) {
+        endGame();
+      }
+    }
+
+    // Update timer display
+    function updateTimerDisplay() {
+      const minutes = Math.floor(gameState.timeRemaining / 60);
+      const seconds = gameState.timeRemaining % 60;
+      const display = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      
+      const timerEl = document.getElementById('game-timer');
+      timerEl.textContent = display;
+      
+      // Warning states
+      timerEl.classList.remove('warning', 'critical');
+      if (gameState.timeRemaining <= 30) {
+        timerEl.classList.add('critical');
+      } else if (gameState.timeRemaining <= 60) {
+        timerEl.classList.add('warning');
+      }
+    }
+
+    // Start capture
+    function startCapture(playerIndex) {
+      if (gameState.isCapturing) return;
+      if (gameState.zoneOwner === playerIndex) return; // Already owns zone
+
+      gameState.isCapturing = true;
+      gameState.capturingPlayer = playerIndex;
+      gameState.captureStartTime = Date.now();
+      gameState.captureProgress = 0;
+
+      // Update UI
+      document.getElementById('capture-progress').classList.add('active');
+      document.getElementById('capture-label').textContent = `${gameState.players[playerIndex]} Capturing...`;
+      document.getElementById('capture-fill').style.background = PLAYER_COLORS[playerIndex];
+      
+      // Disable player buttons
+      gameState.players.forEach((_, i) => {
+        document.getElementById(`player-btn-${i}`).disabled = true;
+      });
+
+      // Enable cancel button
+      document.getElementById('btn-cancel').disabled = false;
+
+      // Start capture progress
+      gameState.captureInterval = setInterval(captureTick, 100);
+    }
+
+    // Capture tick
+    function captureTick() {
+      const elapsed = (Date.now() - gameState.captureStartTime) / 1000;
+      gameState.captureProgress = Math.min(elapsed / gameState.captureDuration, 1);
+
+      // Update progress bar
+      document.getElementById('capture-fill').style.width = (gameState.captureProgress * 100) + '%';
+      document.getElementById('capture-time').textContent = elapsed.toFixed(1) + 's';
+
+      // Check if capture complete
+      if (gameState.captureProgress >= 1) {
+        completeCapture();
+      }
+    }
+
+    // Complete capture
+    function completeCapture() {
+      clearInterval(gameState.captureInterval);
+      
+      // Stop scoring for previous owner
+      if (gameState.scoreInterval) {
+        clearInterval(gameState.scoreInterval);
+        gameState.scoreInterval = null;
+      }
+
+      // Set new owner
+      gameState.zoneOwner = gameState.capturingPlayer;
+      gameState.isCapturing = false;
+      gameState.capturingPlayer = null;
+
+      // Start scoring
+      startScoring();
+
+      // Update UI
+      document.getElementById('capture-progress').classList.remove('active');
+      updateZoneDisplay();
+      
+      // Enable player buttons (except owner)
+      gameState.players.forEach((_, i) => {
+        document.getElementById(`player-btn-${i}`).disabled = (i === gameState.zoneOwner);
+      });
+
+      // Update action buttons
+      document.getElementById('btn-cancel').disabled = true;
+      document.getElementById('btn-stop').disabled = false;
+    }
+
+    // Cancel capture
+    function cancelCapture() {
+      if (!gameState.isCapturing) return;
+
+      clearInterval(gameState.captureInterval);
+      
+      gameState.isCapturing = false;
+      gameState.capturingPlayer = null;
+      gameState.captureProgress = 0;
+
+      // Update UI
+      document.getElementById('capture-progress').classList.remove('active');
+      document.getElementById('capture-fill').style.width = '0%';
+      
+      // Enable player buttons
+      gameState.players.forEach((_, i) => {
+        document.getElementById(`player-btn-${i}`).disabled = (i === gameState.zoneOwner);
+      });
+
+      // Disable cancel button
+      document.getElementById('btn-cancel').disabled = true;
+    }
+
+    // Start scoring for zone owner
+    function startScoring() {
+      if (gameState.zoneOwner === null) return;
+
+      gameState.scoreInterval = setInterval(() => {
+        if (gameState.zoneOwner !== null) {
+          const points = gameState.scoreMultiplier;
+          gameState.scores[gameState.zoneOwner] += points;
+          document.getElementById('zone-score').textContent = 
+            Math.floor(gameState.scores[gameState.zoneOwner]) + ' pts';
+        }
+      }, gameState.secondsPerPoint * 1000);
+    }
+
+    // Stop scoring (owner got hit)
+    function stopScoring() {
+      if (gameState.zoneOwner === null) return;
+
+      if (gameState.scoreInterval) {
+        clearInterval(gameState.scoreInterval);
+        gameState.scoreInterval = null;
+      }
+
+      gameState.zoneOwner = null;
+      updateZoneDisplay();
+
+      // Enable all player buttons
+      gameState.players.forEach((_, i) => {
+        document.getElementById(`player-btn-${i}`).disabled = false;
+      });
+
+      // Disable stop button
+      document.getElementById('btn-stop').disabled = true;
+    }
+
+    // Update zone display
+    function updateZoneDisplay() {
+      const indicator = document.getElementById('owner-indicator');
+      const text = document.getElementById('owner-text');
+      const score = document.getElementById('zone-score');
+      const card = document.getElementById('zone-status-card');
+
+      if (gameState.zoneOwner === null) {
+        indicator.style.background = '#4a5568';
+        indicator.style.color = '#4a5568';
+        text.textContent = 'Neutral Zone';
+        score.textContent = '—';
+        card.style.borderColor = 'var(--border-color)';
+      } else {
+        const color = PLAYER_COLORS[gameState.zoneOwner];
+        indicator.style.background = color;
+        indicator.style.color = color;
+        text.textContent = gameState.players[gameState.zoneOwner];
+        score.textContent = Math.floor(gameState.scores[gameState.zoneOwner]) + ' pts';
+        card.style.borderColor = color;
+      }
+    }
+
+    // Confirm end game
+    function confirmEndGame() {
+      showModal('End Game?', 'Are you sure you want to end the game early?', () => {
+        endGame();
+      });
+    }
+
+    // End game
+    function endGame() {
+      // Clear all intervals
+      if (gameState.gameInterval) clearInterval(gameState.gameInterval);
+      if (gameState.captureInterval) clearInterval(gameState.captureInterval);
+      if (gameState.scoreInterval) clearInterval(gameState.scoreInterval);
+
+      // Show final scores
+      document.getElementById('final-zone-name').textContent = gameState.zoneName;
+      
+      const container = document.getElementById('final-scores');
+      container.innerHTML = '';
+
+      // Sort by score
+      const sortedPlayers = gameState.players
+        .map((name, index) => ({ name, index, score: gameState.scores[index] }))
+        .sort((a, b) => b.score - a.score);
+
+      sortedPlayers.forEach(({ name, index, score }) => {
+        const row = document.createElement('div');
+        row.className = 'final-score-row';
+        row.innerHTML = `
+          <div class="final-score-color" style="background: ${PLAYER_COLORS[index]}"></div>
+          <div class="final-score-name">${name}</div>
+          <div class="final-score-value">${Math.floor(score)} pts</div>
+        `;
+        container.appendChild(row);
+      });
+
+      showScreen('gameover-screen');
+    }
+
+    // Reset game
+    function resetGame() {
+      showScreen('config-screen');
+    }
+
+    // Modal functions
+    function showModal(title, message, callback) {
+      document.getElementById('modal-title').textContent = title;
+      document.getElementById('modal-message').textContent = message;
+      document.getElementById('modal-overlay').classList.add('active');
+      modalCallback = callback;
+    }
+
+    function closeModal() {
+      document.getElementById('modal-overlay').classList.remove('active');
+      modalCallback = null;
+    }
+
+    function confirmModal() {
+      if (modalCallback) modalCallback();
+      closeModal();
+    }
+  </script>
 </body>
 </html>

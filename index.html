@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Gel Blaster Game Modes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0a0e13;
+      --bg-card: #141a23;
+      --bg-card-hover: #1a222d;
+      --border-color: #2a3441;
+      --text-primary: #e8edf4;
+      --text-secondary: #7a8a9d;
+      --text-muted: #4a5568;
+      --accent-blue: #3b82f6;
+      --accent-orange: #f59e0b;
+      --accent-red: #ef4444;
+      --accent-green: #22c55e;
+      --accent-purple: #a855f7;
+      --accent-cyan: #06b6d4;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Rajdhani', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 16px;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+      padding: 40px 20px;
+      position: relative;
+    }
+
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+    }
+
+    .logo-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 20px;
+      background: linear-gradient(135deg, var(--accent-orange), var(--accent-red));
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 30px rgba(245, 158, 11, 0.3);
+    }
+
+    .logo-icon svg {
+      width: 48px;
+      height: 48px;
+      fill: var(--bg-dark);
+    }
+
+    .header h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .header .subtitle {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      letter-spacing: 0.15em;
+    }
+
+    /* Section Headers */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 28px 0 20px;
+    }
+
+    .section-header::before,
+    .section-header::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+    }
+
+    .section-header span {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    /* Game Mode Cards */
+    .mode-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      flex: 1;
+    }
+
+    .mode-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+
+    .mode-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--card-accent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .mode-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--card-accent);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .mode-card:hover::before {
+      opacity: 1;
+    }
+
+    .mode-card:active {
+      transform: translateY(-2px);
+    }
+
+    .mode-card.domination {
+      --card-accent: var(--accent-orange);
+    }
+
+    .mode-card.defusal {
+      --card-accent: var(--accent-red);
+    }
+
+    .mode-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .mode-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .mode-card.domination .mode-icon {
+      background: linear-gradient(135deg, var(--accent-orange), #d97706);
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+    }
+
+    .mode-card.defusal .mode-icon {
+      background: linear-gradient(135deg, var(--accent-red), #dc2626);
+      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+    }
+
+    .mode-icon svg {
+      width: 28px;
+      height: 28px;
+      fill: var(--bg-dark);
+    }
+
+    .mode-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .mode-subtitle {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+    }
+
+    .mode-description {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+
+    .mode-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .mode-tag {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      padding: 6px 12px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 6px;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+
+    .mode-card.domination .mode-tag {
+      border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    .mode-card.defusal .mode-tag {
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .mode-arrow {
+      position: absolute;
+      right: 24px;
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: 0;
+      transition: all 0.3s ease;
+      color: var(--card-accent);
+    }
+
+    .mode-card:hover .mode-arrow {
+      opacity: 1;
+      right: 20px;
+    }
+
+    .mode-arrow svg {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 24px 0;
+      margin-top: auto;
+    }
+
+    .footer p {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+    }
+
+    /* Animation */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .mode-card {
+      animation: fadeInUp 0.5s ease backwards;
+    }
+
+    .mode-card:nth-child(1) {
+      animation-delay: 0.1s;
+    }
+
+    .mode-card:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .header {
+      animation: fadeInUp 0.5s ease backwards;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <h1>Gel Blaster</h1>
+      <div class="subtitle">Game Mode Selector</div>
+    </header>
+
+    <div class="section-header"><span>Select Game Mode</span></div>
+
+    <div class="mode-cards">
+      <!-- Domination Mode -->
+      <a href="domination.html" class="mode-card domination">
+        <div class="mode-header">
+          <div class="mode-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="mode-title">Domination</div>
+            <div class="mode-subtitle">Zone Control</div>
+          </div>
+        </div>
+        <p class="mode-description">
+          Capture and hold zones to score points. Each zone runs on its own phone. 
+          Players compete to control territory and accumulate the highest score.
+        </p>
+        <div class="mode-tags">
+          <span class="mode-tag">2-6 Players</span>
+          <span class="mode-tag">Multi-Zone</span>
+          <span class="mode-tag">Territory Control</span>
+        </div>
+        <div class="mode-arrow">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+          </svg>
+        </div>
+      </a>
+
+      <!-- Bomb Defusal Mode -->
+      <a href="bomb-defusal.html" class="mode-card defusal">
+        <div class="mode-header">
+          <div class="mode-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M17 6.5V4h1V2H6v2h1v2.5a7.5 7.5 0 0 0 3.5 6.4V14H9v2h6v-2h-1.5v-1.1a7.5 7.5 0 0 0 3.5-6.4zM12 11.3a5.5 5.5 0 0 1-3-4.8V4h6v2.5a5.5 5.5 0 0 1-3 4.8zM11 18h2v4h-2z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="mode-title">Bomb Defusal</div>
+            <div class="mode-subtitle">Time Attack</div>
+          </div>
+        </div>
+        <p class="mode-description">
+          Attackers plant the bomb with a secret code. Defenders must find and defuse it 
+          before time runs out. High tension, fast-paced rounds.
+        </p>
+        <div class="mode-tags">
+          <span class="mode-tag">2v1 Teams</span>
+          <span class="mode-tag">Code Defusal</span>
+          <span class="mode-tag">Timed Rounds</span>
+        </div>
+        <div class="mode-arrow">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+          </svg>
+        </div>
+      </a>
+    </div>
+
+    <footer class="footer">
+      <p>Version 1.0 • Single Phone Per Mode</p>
+    </footer>
+  </div>
+</body>
+</html>

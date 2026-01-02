@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Bomb Defusal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0a0e13;
+      --bg-card: #141a23;
+      --bg-card-hover: #1a222d;
+      --border-color: #2a3441;
+      --text-primary: #e8edf4;
+      --text-secondary: #7a8a9d;
+      --text-muted: #4a5568;
+      --accent-blue: #3b82f6;
+      --accent-orange: #f59e0b;
+      --accent-red: #ef4444;
+      --accent-green: #22c55e;
+      --accent-purple: #a855f7;
+      --accent-cyan: #06b6d4;
+      --bomb-armed: #ef4444;
+      --bomb-defused: #22c55e;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Rajdhani', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 16px;
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--accent-red);
+      text-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+    }
+
+    .header .subtitle {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      letter-spacing: 0.1em;
+    }
+
+    /* Screens */
+    .screen {
+      display: none;
+    }
+
+    .screen.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Form Elements */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 14px 16px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-primary);
+      transition: all 0.2s ease;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent-red);
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+    }
+
+    /* Section Headers */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 28px 0 16px;
+    }
+
+    .section-header::before,
+    .section-header::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+    }
+
+    .section-header span {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    /* Buttons */
+    .btn {
+      width: 100%;
+      padding: 16px 24px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-orange), #d97706);
+      color: var(--bg-dark);
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-card-hover);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, var(--accent-red), #dc2626);
+      color: white;
+      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-danger:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, var(--accent-green), #16a34a);
+      color: var(--bg-dark);
+      box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+    }
+
+    .btn-success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
+    }
+
+    /* Pre-Game */
+    .pre-game-message {
+      text-align: center;
+      padding: 40px 20px;
+      background: var(--bg-card);
+      border-radius: 12px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border-color);
+    }
+
+    .pre-game-message h2 {
+      font-size: 1.2rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent-red);
+      margin-bottom: 12px;
+    }
+
+    .pre-game-message p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* Settings Summary Card */
+    .settings-card {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border-color);
+    }
+
+    .settings-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .settings-row:last-child {
+      border-bottom: none;
+    }
+
+    .settings-label {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .settings-value {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1rem;
+      color: var(--text-primary);
+    }
+
+    /* Bomb Timer Display */
+    .bomb-timer {
+      text-align: center;
+      padding: 30px 20px;
+      background: var(--bg-card);
+      border-radius: 12px;
+      margin-bottom: 20px;
+      border: 2px solid var(--accent-red);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bomb-timer::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at center, rgba(239, 68, 68, 0.1), transparent);
+      pointer-events: none;
+    }
+
+    .bomb-timer-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--accent-red);
+      margin-bottom: 4px;
+    }
+
+    .bomb-timer-value {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 4rem;
+      font-weight: 700;
+      color: var(--accent-red);
+      text-shadow: 0 0 30px rgba(239, 68, 68, 0.5);
+    }
+
+    .bomb-timer-value.warning {
+      animation: timerPulse 1s ease infinite;
+    }
+
+    .bomb-timer-value.critical {
+      animation: timerPulse 0.3s ease infinite;
+    }
+
+    @keyframes timerPulse {
+      0%, 100% { opacity: 1; text-shadow: 0 0 30px rgba(239, 68, 68, 0.5); }
+      50% { opacity: 0.7; text-shadow: 0 0 50px rgba(239, 68, 68, 0.8); }
+    }
+
+    /* Attempts Counter */
+    .attempts-counter {
+      text-align: center;
+      padding: 12px;
+      background: rgba(239, 68, 68, 0.1);
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .attempts-counter.hidden {
+      display: none;
+    }
+
+    .attempts-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+    }
+
+    .attempts-value {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1.2rem;
+      color: var(--accent-red);
+      margin-top: 4px;
+    }
+
+    /* Code Input Display */
+    .code-display {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border-color);
+      text-align: center;
+    }
+
+    .code-digits {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .code-digit {
+      width: 60px;
+      height: 80px;
+      background: var(--bg-dark);
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 2.5rem;
+      color: var(--text-primary);
+      transition: all 0.2s ease;
+    }
+
+    .code-digit.filled {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+    }
+
+    .code-digit.wrong {
+      border-color: var(--accent-red);
+      animation: shake 0.5s ease;
+    }
+
+    .code-digit.correct {
+      border-color: var(--accent-green);
+      box-shadow: 0 0 15px rgba(34, 197, 94, 0.5);
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+
+    .code-status {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1rem;
+      height: 24px;
+      color: var(--text-muted);
+    }
+
+    .code-status.wrong {
+      color: var(--accent-red);
+      animation: fadeIn 0.3s ease;
+    }
+
+    .code-status.correct {
+      color: var(--accent-green);
+      animation: fadeIn 0.3s ease;
+    }
+
+    /* Number Pad */
+    .number-pad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .num-btn {
+      padding: 24px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      background: var(--bg-card);
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .num-btn:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--accent-cyan);
+    }
+
+    .num-btn:active {
+      transform: scale(0.95);
+      background: var(--accent-cyan);
+      color: var(--bg-dark);
+    }
+
+    .num-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Action Buttons Row */
+    .action-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .btn-defuse {
+      background: linear-gradient(135deg, var(--accent-green), #16a34a);
+      color: var(--bg-dark);
+      font-size: 1.2rem;
+      padding: 20px;
+    }
+
+    .btn-clear {
+      background: var(--bg-card);
+      border: 2px solid var(--border-color);
+      color: var(--text-secondary);
+      font-size: 1.2rem;
+      padding: 20px;
+    }
+
+    .btn-clear:hover {
+      border-color: var(--accent-orange);
+      color: var(--accent-orange);
+    }
+
+    /* Game Over Screens */
+    .game-over-banner {
+      text-align: center;
+      padding: 40px 30px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .game-over-banner.exploded {
+      background: linear-gradient(135deg, var(--accent-red), #dc2626);
+    }
+
+    .game-over-banner.defused {
+      background: linear-gradient(135deg, var(--accent-green), #16a34a);
+    }
+
+    .game-over-banner h2 {
+      font-size: 2rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: white;
+      margin-bottom: 8px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .game-over-banner p {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 1rem;
+    }
+
+    .game-over-stats {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border-color);
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .stat-row:last-child {
+      border-bottom: none;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .stat-value {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1.1rem;
+      color: var(--text-primary);
+    }
+
+    /* Utilities */
+    .mt-20 { margin-top: 20px; }
+    .mb-20 { margin-bottom: 20px; }
+
+    /* Confirmation Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 1000;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 320px;
+      width: 100%;
+      border: 1px solid var(--border-color);
+      animation: modalIn 0.2s ease;
+    }
+
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .modal h3 {
+      font-size: 1.1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 12px;
+      color: var(--accent-red);
+    }
+
+    .modal p {
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .modal-buttons .btn {
+      flex: 1;
+      padding: 12px;
+      font-size: 0.9rem;
+    }
+
+    /* Tick indicator */
+    .tick-indicator {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent-red);
+      opacity: 0;
+      transition: opacity 0.1s ease;
+    }
+
+    .tick-indicator.active {
+      opacity: 1;
+      box-shadow: 0 0 10px var(--accent-red);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>Bomb Defusal</h1>
+      <div class="subtitle">Time Defusal System</div>
+    </header>
+
+    <!-- Configuration Screen -->
+    <div id="config-screen" class="screen active">
+      <div class="section-header"><span>Bomb Settings</span></div>
+      
+      <div class="form-group">
+        <label>Bomb Timer</label>
+        <select id="bomb-timer">
+          <option value="60">60 Seconds</option>
+          <option value="90" selected>90 Seconds</option>
+          <option value="120">120 Seconds</option>
+          <option value="180">3 Minutes</option>
+          <option value="300">5 Minutes</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Wrong Attempts</label>
+          <select id="max-attempts">
+            <option value="0">Unlimited</option>
+            <option value="1">1 Attempt</option>
+            <option value="2">2 Attempts</option>
+            <option value="3" selected>3 Attempts</option>
+            <option value="5">5 Attempts</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Difficulty</label>
+          <select id="difficulty">
+            <option value="easy">Easy (2 digits)</option>
+            <option value="hard" selected>Hard (3 digits)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="section-header"><span>Sound Settings</span></div>
+      
+      <div class="form-group">
+        <label>Tick Sound</label>
+        <select id="tick-sound">
+          <option value="on" selected>On</option>
+          <option value="off">Off</option>
+        </select>
+      </div>
+
+      <button class="btn btn-primary mt-20" onclick="goToPreGame()">Continue</button>
+    </div>
+
+    <!-- Pre-Game Screen -->
+    <div id="pregame-screen" class="screen">
+      <div class="pre-game-message">
+        <h2>Set Bomb Code</h2>
+        <p>Attackers: Enter your secret code.<br>Then place this phone at the bomb site.</p>
+      </div>
+
+      <div class="settings-card">
+        <div class="settings-row">
+          <span class="settings-label">Timer</span>
+          <span class="settings-value" id="summary-timer">90s</span>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">Wrong Attempts</span>
+          <span class="settings-value" id="summary-attempts">3</span>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">Difficulty</span>
+          <span class="settings-value" id="summary-difficulty">Hard (3 digits)</span>
+        </div>
+      </div>
+
+      <div class="section-header"><span>Enter Secret Code</span></div>
+
+      <div class="code-display">
+        <div class="code-digits" id="setup-code-digits">
+          <!-- Setup digits will be added here -->
+        </div>
+        <div class="code-status" id="setup-code-status">Enter code using buttons below</div>
+      </div>
+
+      <div class="number-pad">
+        <button class="num-btn" onclick="enterSetupDigit(1)">1</button>
+        <button class="num-btn" onclick="enterSetupDigit(2)">2</button>
+        <button class="num-btn" onclick="enterSetupDigit(3)">3</button>
+      </div>
+
+      <div class="action-row mb-20">
+        <button class="btn btn-clear" onclick="clearSetupCode()">Clear</button>
+        <button class="btn btn-danger" id="btn-plant" onclick="plantBomb()" disabled>Plant Bomb</button>
+      </div>
+
+      <button class="btn btn-secondary" onclick="backToConfig()">Back to Config</button>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="screen">
+      <div class="tick-indicator" id="tick-indicator"></div>
+      
+      <div class="bomb-timer">
+        <div class="bomb-timer-label">Time Until Detonation</div>
+        <div class="bomb-timer-value" id="bomb-timer-display">1:30</div>
+      </div>
+
+      <div class="attempts-counter" id="attempts-counter">
+        <div class="attempts-label">Wrong Attempts Remaining</div>
+        <div class="attempts-value" id="attempts-display">3 / 3</div>
+      </div>
+
+      <div class="code-display">
+        <div class="code-digits" id="code-digits">
+          <!-- Digits will be added here -->
+        </div>
+        <div class="code-status" id="code-status">Enter defusal code</div>
+      </div>
+
+      <div class="number-pad" id="number-pad">
+        <button class="num-btn" onclick="enterDigit(1)">1</button>
+        <button class="num-btn" onclick="enterDigit(2)">2</button>
+        <button class="num-btn" onclick="enterDigit(3)">3</button>
+      </div>
+
+      <div class="action-row">
+        <button class="btn btn-clear" onclick="clearCode()">Clear</button>
+        <button class="btn btn-defuse" onclick="attemptDefuse()">Defuse</button>
+      </div>
+
+      <button class="btn btn-secondary" onclick="confirmAbort()">Abort Game</button>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameover-screen" class="screen">
+      <div class="game-over-banner" id="game-over-banner">
+        <h2 id="game-over-title">Game Over</h2>
+        <p id="game-over-subtitle">Result</p>
+      </div>
+
+      <div class="game-over-stats">
+        <div class="stat-row">
+          <span class="stat-label">Outcome</span>
+          <span class="stat-value" id="stat-outcome">—</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Time Elapsed</span>
+          <span class="stat-value" id="stat-time">—</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Wrong Attempts</span>
+          <span class="stat-value" id="stat-attempts">—</span>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="resetGame()">Play Again</button>
+    </div>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <h3 id="modal-title">Confirm</h3>
+      <p id="modal-message">Are you sure?</p>
+      <div class="modal-buttons">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-danger" id="modal-confirm" onclick="confirmModal()">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Game State
+    let gameState = {
+      // Config
+      bombTimer: 90,
+      maxAttempts: 3, // 0 = unlimited
+      difficulty: 'hard', // 'easy' = 2 digits, 'hard' = 3 digits
+      tickSound: true,
+      
+      // Setup (attacker code input)
+      setupCode: [],
+      
+      // Runtime
+      timeRemaining: 0,
+      wrongAttempts: 0,
+      secretCode: [],
+      enteredCode: [],
+      isGameActive: false,
+      startTime: null,
+      
+      // Intervals
+      timerInterval: null,
+      tickInterval: null,
+    };
+
+    // Audio Context for tick sounds
+    let audioContext = null;
+
+    // Modal callback
+    let modalCallback = null;
+
+    // Initialize Audio Context
+    function initAudio() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    // Play tick sound
+    function playTick(frequency = 800, duration = 0.05) {
+      if (!gameState.tickSound || !audioContext) return;
+      
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = frequency;
+      oscillator.type = 'square';
+      
+      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + duration);
+      
+      // Visual tick indicator
+      const indicator = document.getElementById('tick-indicator');
+      indicator.classList.add('active');
+      setTimeout(() => indicator.classList.remove('active'), 100);
+    }
+
+    // Play planted sound
+    function playPlantedSound() {
+      if (!audioContext) return;
+      
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = 440;
+      oscillator.type = 'sine';
+      
+      gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.5);
+    }
+
+    // Play defused sound
+    function playDefusedSound() {
+      if (!audioContext) return;
+      
+      [523, 659, 784].forEach((freq, i) => {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = freq;
+        oscillator.type = 'sine';
+        
+        const startTime = audioContext.currentTime + i * 0.15;
+        gainNode.gain.setValueAtTime(0.15, startTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.3);
+        
+        oscillator.start(startTime);
+        oscillator.stop(startTime + 0.3);
+      });
+    }
+
+    // Play explosion sound
+    function playExplosionSound() {
+      if (!audioContext) return;
+      
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.setValueAtTime(150, audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(30, audioContext.currentTime + 0.5);
+      oscillator.type = 'sawtooth';
+      
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.5);
+    }
+
+    // Play wrong sound
+    function playWrongSound() {
+      if (!audioContext) return;
+      
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = 200;
+      oscillator.type = 'square';
+      
+      gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+    }
+
+    // Show screen
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(screenId).classList.add('active');
+    }
+
+    // Go to pre-game
+    function goToPreGame() {
+      // Save config
+      gameState.bombTimer = parseInt(document.getElementById('bomb-timer').value);
+      gameState.maxAttempts = parseInt(document.getElementById('max-attempts').value);
+      gameState.difficulty = document.getElementById('difficulty').value;
+      gameState.tickSound = document.getElementById('tick-sound').value === 'on';
+
+      // Reset setup code
+      gameState.setupCode = [];
+
+      // Update summary
+      const timerDisplay = gameState.bombTimer >= 60 
+        ? `${Math.floor(gameState.bombTimer / 60)}:${(gameState.bombTimer % 60).toString().padStart(2, '0')}`
+        : `${gameState.bombTimer}s`;
+      document.getElementById('summary-timer').textContent = timerDisplay;
+      document.getElementById('summary-attempts').textContent = gameState.maxAttempts === 0 ? 'Unlimited' : gameState.maxAttempts;
+      document.getElementById('summary-difficulty').textContent = gameState.difficulty === 'easy' ? 'Easy (2 digits)' : 'Hard (3 digits)';
+
+      // Setup code input display
+      setupSetupCodeDisplay();
+      updateSetupCodeDisplay();
+      updatePlantButton();
+
+      showScreen('pregame-screen');
+    }
+
+    // Setup the code input display for attackers
+    function setupSetupCodeDisplay() {
+      const container = document.getElementById('setup-code-digits');
+      const length = gameState.difficulty === 'easy' ? 2 : 3;
+      container.innerHTML = '';
+      
+      for (let i = 0; i < length; i++) {
+        const digit = document.createElement('div');
+        digit.className = 'code-digit';
+        digit.id = `setup-digit-${i}`;
+        digit.textContent = '_';
+        container.appendChild(digit);
+      }
+    }
+
+    // Enter digit for setup code
+    function enterSetupDigit(digit) {
+      const maxLength = gameState.difficulty === 'easy' ? 2 : 3;
+      if (gameState.setupCode.length >= maxLength) return;
+
+      gameState.setupCode.push(digit);
+      updateSetupCodeDisplay();
+      updatePlantButton();
+    }
+
+    // Clear setup code
+    function clearSetupCode() {
+      gameState.setupCode = [];
+      updateSetupCodeDisplay();
+      updatePlantButton();
+    }
+
+    // Update setup code display
+    function updateSetupCodeDisplay() {
+      const maxLength = gameState.difficulty === 'easy' ? 2 : 3;
+      
+      for (let i = 0; i < maxLength; i++) {
+        const digitEl = document.getElementById(`setup-digit-${i}`);
+        if (digitEl) {
+          if (i < gameState.setupCode.length) {
+            digitEl.textContent = gameState.setupCode[i];
+            digitEl.classList.add('filled');
+          } else {
+            digitEl.textContent = '_';
+            digitEl.classList.remove('filled');
+          }
+        }
+      }
+      
+      const statusEl = document.getElementById('setup-code-status');
+      if (gameState.setupCode.length === maxLength) {
+        statusEl.textContent = 'Code ready - Plant the bomb!';
+        statusEl.classList.add('correct');
+        statusEl.classList.remove('wrong');
+      } else {
+        statusEl.textContent = `Enter ${maxLength - gameState.setupCode.length} more digit(s)`;
+        statusEl.classList.remove('correct', 'wrong');
+      }
+    }
+
+    // Update plant button state
+    function updatePlantButton() {
+      const maxLength = gameState.difficulty === 'easy' ? 2 : 3;
+      const plantBtn = document.getElementById('btn-plant');
+      plantBtn.disabled = gameState.setupCode.length !== maxLength;
+    }
+
+    // Back to config
+    function backToConfig() {
+      showScreen('config-screen');
+    }
+
+    // Generate secret code
+    function generateSecretCode() {
+      const length = gameState.difficulty === 'easy' ? 2 : 3;
+      const code = [];
+      for (let i = 0; i < length; i++) {
+        code.push(Math.floor(Math.random() * 3) + 1); // 1, 2, or 3
+      }
+      return code;
+    }
+
+    // Plant bomb (start game)
+    function plantBomb() {
+      // Validate code is complete
+      const maxLength = gameState.difficulty === 'easy' ? 2 : 3;
+      if (gameState.setupCode.length !== maxLength) {
+        return;
+      }
+
+      initAudio();
+      
+      // Initialize game state
+      gameState.timeRemaining = gameState.bombTimer;
+      gameState.wrongAttempts = 0;
+      gameState.secretCode = [...gameState.setupCode]; // Use attacker's code
+      gameState.enteredCode = [];
+      gameState.isGameActive = true;
+      gameState.startTime = Date.now();
+
+      // Setup UI
+      setupCodeDisplay();
+      updateTimerDisplay();
+      updateAttemptsDisplay();
+      updateCodeDisplay();
+      setButtonsEnabled(true);
+
+      // Play planted sound
+      playPlantedSound();
+
+      // Start timer
+      gameState.timerInterval = setInterval(timerTick, 1000);
+
+      // Start ticking
+      startTicking();
+
+      showScreen('game-screen');
+    }
+
+    // Setup code display
+    function setupCodeDisplay() {
+      const container = document.getElementById('code-digits');
+      const length = gameState.difficulty === 'easy' ? 2 : 3;
+      container.innerHTML = '';
+      
+      for (let i = 0; i < length; i++) {
+        const digit = document.createElement('div');
+        digit.className = 'code-digit';
+        digit.id = `digit-${i}`;
+        digit.textContent = '_';
+        container.appendChild(digit);
+      }
+    }
+
+    // Timer tick
+    function timerTick() {
+      gameState.timeRemaining--;
+      updateTimerDisplay();
+
+      // Update tick speed based on time remaining
+      updateTickSpeed();
+
+      if (gameState.timeRemaining <= 0) {
+        explode();
+      }
+    }
+
+    // Update timer display
+    function updateTimerDisplay() {
+      const minutes = Math.floor(gameState.timeRemaining / 60);
+      const seconds = gameState.timeRemaining % 60;
+      const display = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      
+      const timerEl = document.getElementById('bomb-timer-display');
+      timerEl.textContent = display;
+      
+      // Warning states
+      timerEl.classList.remove('warning', 'critical');
+      if (gameState.timeRemaining <= 3) {
+        timerEl.classList.add('critical');
+      } else if (gameState.timeRemaining <= 10) {
+        timerEl.classList.add('warning');
+      }
+    }
+
+    // Update attempts display
+    function updateAttemptsDisplay() {
+      const counter = document.getElementById('attempts-counter');
+      const display = document.getElementById('attempts-display');
+      
+      if (gameState.maxAttempts === 0) {
+        counter.classList.add('hidden');
+      } else {
+        counter.classList.remove('hidden');
+        const remaining = gameState.maxAttempts - gameState.wrongAttempts;
+        display.textContent = `${remaining} / ${gameState.maxAttempts}`;
+      }
+    }
+
+    // Start ticking sound
+    function startTicking() {
+      if (gameState.tickInterval) clearInterval(gameState.tickInterval);
+      updateTickSpeed();
+    }
+
+    // Update tick speed based on time remaining
+    function updateTickSpeed() {
+      if (gameState.tickInterval) clearInterval(gameState.tickInterval);
+      
+      let interval;
+      let frequency;
+      
+      if (gameState.timeRemaining <= 3) {
+        interval = 100; // Very fast
+        frequency = 1200;
+      } else if (gameState.timeRemaining <= 10) {
+        interval = 250; // Fast
+        frequency = 1000;
+      } else {
+        interval = 1000; // Normal
+        frequency = 800;
+      }
+      
+      gameState.tickInterval = setInterval(() => {
+        if (gameState.isGameActive) {
+          playTick(frequency, 0.05);
+        }
+      }, interval);
+    }
+
+    // Enter digit
+    function enterDigit(digit) {
+      if (!gameState.isGameActive) return;
+      
+      const maxLength = gameState.difficulty === 'easy' ? 2 : 3;
+      if (gameState.enteredCode.length >= maxLength) return;
+
+      gameState.enteredCode.push(digit);
+      updateCodeDisplay();
+      
+      // Play soft click
+      if (audioContext) {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        oscillator.frequency.value = 600;
+        oscillator.type = 'sine';
+        gainNode.gain.setValueAtTime(0.05, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.05);
+      }
+    }
+
+    // Update code display
+    function updateCodeDisplay() {
+      const maxLength = gameState.difficulty === 'easy' ? 2 : 3;
+      
+      for (let i = 0; i < maxLength; i++) {
+        const digitEl = document.getElementById(`digit-${i}`);
+        if (i < gameState.enteredCode.length) {
+          digitEl.textContent = gameState.enteredCode[i];
+          digitEl.classList.add('filled');
+        } else {
+          digitEl.textContent = '_';
+          digitEl.classList.remove('filled');
+        }
+        digitEl.classList.remove('wrong', 'correct');
+      }
+      
+      document.getElementById('code-status').textContent = 'Enter defusal code';
+      document.getElementById('code-status').classList.remove('wrong', 'correct');
+    }
+
+    // Clear code
+    function clearCode() {
+      if (!gameState.isGameActive) return;
+      gameState.enteredCode = [];
+      updateCodeDisplay();
+    }
+
+    // Attempt defuse
+    function attemptDefuse() {
+      if (!gameState.isGameActive) return;
+      
+      const maxLength = gameState.difficulty === 'easy' ? 2 : 3;
+      if (gameState.enteredCode.length !== maxLength) {
+        document.getElementById('code-status').textContent = 'Enter complete code';
+        return;
+      }
+
+      // Check code
+      const isCorrect = gameState.enteredCode.every((d, i) => d === gameState.secretCode[i]);
+
+      if (isCorrect) {
+        defuseSuccess();
+      } else {
+        defuseFail();
+      }
+    }
+
+    // Defuse success
+    function defuseSuccess() {
+      gameState.isGameActive = false;
+      stopAllIntervals();
+      
+      // Update display
+      const maxLength = gameState.difficulty === 'easy' ? 2 : 3;
+      for (let i = 0; i < maxLength; i++) {
+        document.getElementById(`digit-${i}`).classList.add('correct');
+      }
+      document.getElementById('code-status').textContent = 'DEFUSED!';
+      document.getElementById('code-status').classList.add('correct');
+      
+      playDefusedSound();
+      setButtonsEnabled(false);
+      
+      setTimeout(() => showGameOver(true), 1500);
+    }
+
+    // Defuse fail
+    function defuseFail() {
+      gameState.wrongAttempts++;
+      updateAttemptsDisplay();
+      
+      // Update display
+      const maxLength = gameState.difficulty === 'easy' ? 2 : 3;
+      for (let i = 0; i < maxLength; i++) {
+        document.getElementById(`digit-${i}`).classList.add('wrong');
+      }
+      document.getElementById('code-status').textContent = 'WRONG CODE';
+      document.getElementById('code-status').classList.add('wrong');
+      
+      playWrongSound();
+      
+      // Check if max attempts reached
+      if (gameState.maxAttempts > 0 && gameState.wrongAttempts >= gameState.maxAttempts) {
+        setTimeout(() => explode(), 500);
+        return;
+      }
+      
+      // Clear after delay
+      setTimeout(() => {
+        gameState.enteredCode = [];
+        updateCodeDisplay();
+      }, 800);
+    }
+
+    // Explode
+    function explode() {
+      gameState.isGameActive = false;
+      stopAllIntervals();
+      
+      playExplosionSound();
+      setButtonsEnabled(false);
+      
+      setTimeout(() => showGameOver(false), 500);
+    }
+
+    // Set buttons enabled/disabled
+    function setButtonsEnabled(enabled) {
+      document.querySelectorAll('.num-btn').forEach(btn => btn.disabled = !enabled);
+    }
+
+    // Stop all intervals
+    function stopAllIntervals() {
+      if (gameState.timerInterval) clearInterval(gameState.timerInterval);
+      if (gameState.tickInterval) clearInterval(gameState.tickInterval);
+    }
+
+    // Show game over
+    function showGameOver(defused) {
+      const banner = document.getElementById('game-over-banner');
+      const title = document.getElementById('game-over-title');
+      const subtitle = document.getElementById('game-over-subtitle');
+      
+      banner.classList.remove('exploded', 'defused');
+      
+      if (defused) {
+        banner.classList.add('defused');
+        title.textContent = 'Defused!';
+        subtitle.textContent = 'Defenders Win';
+        document.getElementById('stat-outcome').textContent = 'Bomb Defused';
+      } else {
+        banner.classList.add('exploded');
+        title.textContent = 'Exploded!';
+        subtitle.textContent = 'Attackers Win';
+        document.getElementById('stat-outcome').textContent = 'Bomb Exploded';
+      }
+      
+      // Calculate elapsed time
+      const elapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
+      const minutes = Math.floor(elapsed / 60);
+      const seconds = elapsed % 60;
+      document.getElementById('stat-time').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      
+      document.getElementById('stat-attempts').textContent = gameState.wrongAttempts;
+      
+      showScreen('gameover-screen');
+    }
+
+    // Confirm abort
+    function confirmAbort() {
+      showModal('Abort Game?', 'Are you sure you want to abort the current game?', () => {
+        gameState.isGameActive = false;
+        stopAllIntervals();
+        showGameOver(false);
+      });
+    }
+
+    // Reset game
+    function resetGame() {
+      stopAllIntervals();
+      showScreen('config-screen');
+    }
+
+    // Modal functions
+    function showModal(title, message, callback) {
+      document.getElementById('modal-title').textContent = title;
+      document.getElementById('modal-message').textContent = message;
+      document.getElementById('modal-overlay').classList.add('active');
+      modalCallback = callback;
+    }
+
+    function closeModal() {
+      document.getElementById('modal-overlay').classList.remove('active');
+      modalCallback = null;
+    }
+
+    function confirmModal() {
+      if (modalCallback) modalCallback();
+      closeModal();
+    }
+  </script>
+</body>
+</html>
